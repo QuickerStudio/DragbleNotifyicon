@@ -1,23 +1,27 @@
-﻿using System.Text;
+using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
-namespace DragbleNotifyicon;
-
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
-public partial class MainWindow : Window
+namespace WallpaperTool
 {
-    public MainWindow()
+    public partial class MainWindow : Window
     {
-        InitializeComponent();
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        // 添加日志的方法
+        public void AddLog(string message)
+        {
+            // 确保在UI线程上执行
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.Invoke(() => AddLog(message));
+                return;
+            }
+
+            LogTextBox.AppendText($"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
+            LogTextBox.ScrollToEnd();
+        }
     }
 }

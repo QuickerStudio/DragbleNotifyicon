@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "BVhUrhgV1CI=",
+  "dgSpecHash": "UF2v55t0U8g=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Quick\\Desktop\\DragbleNotifyicon\\DragbleNotifyicon.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "C:\\Users\\Quick\\Desktop\\WallpaperTool\\WallpaperTool.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Quick\\.nuget\\packages\\hardcodet.notifyicon.wpf\\1.1.0\\hardcodet.notifyicon.wpf.1.1.0.nupkg.sha512",
+    "C:\\Users\\Quick\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.0\\microsoft.netcore.platforms.3.1.0.nupkg.sha512",
+    "C:\\Users\\Quick\\.nuget\\packages\\system.runtime.windowsruntime\\4.7.0\\system.runtime.windowsruntime.4.7.0.nupkg.sha512"
+  ],
   "logs": []
 }

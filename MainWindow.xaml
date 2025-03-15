@@ -1,12 +1,17 @@
-﻿<Window x:Class="DragbleNotifyicon.MainWindow"
+<Window x:Class="WallpaperTool.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DragbleNotifyicon"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="壁纸设置工具" Height="450" Width="800">
     <Grid>
-
+        <StackPanel Margin="10">
+            <TextBlock Text="拖放测试窗口" FontSize="20" Margin="0,0,0,10"/>
+            <TextBlock Text="文件拖放记录:" FontSize="16" Margin="0,0,0,5"/>
+            <TextBox x:Name="LogTextBox"
+                     Height="300"
+                     IsReadOnly="True"
+                     TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"/>
+        </StackPanel>
     </Grid>
 </Window>

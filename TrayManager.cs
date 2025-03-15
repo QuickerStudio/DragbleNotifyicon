@@ -1,0 +1,268 @@
+using System;
+using System.Windows;
+using System.Windows.Threading;
+using Hardcodet.Wpf.TaskbarNotification;
+using System.Windows.Controls;
+using System.IO;
+using System.Runtime.InteropServices;
+
+namespace WallpaperTool
+{
+    public class TrayManager : IDisposable
+    {
+        private TaskbarIcon? _notifyIcon;
+        private readonly MainWindow _mainWindow;
+        private TrayDropWindow? _dropWindow;
+        private DispatcherTimer _monitorTimer;
+
+        [DllImport("user32.dll")]
+        private static extern bool GetCursorPos(out POINT lpPoint);
+
+        [DllImport("user32.dll")]
+        private static extern short GetKeyState(int nVirtKey);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        private const int VK_LBUTTON = 0x01;
+
+        public TrayManager(MainWindow mainWindow)
+        {
+            _mainWindow = mainWindow;
+            InitializeNotifyIcon();
+            InitializeDropWindow();
+            InitializeMonitor();
+            UpdateDropWindowPosition(); // 启动时更新透明窗口位置
+        }
+
+        private void InitializeNotifyIcon()
+        {
+            _notifyIcon = new TaskbarIcon
+            {
+                Icon = System.Drawing.SystemIcons.Application,
+                ToolTipText = "壁纸设置工具 - 拖放文件到这里",
+                Visibility = Visibility.Visible
+            };
+
+            // 创建上下文菜单
+            var contextMenu = new ContextMenu();
+
+            var showItem = new MenuItem { Header = "显示主窗口" };
+            showItem.Click += (s, e) => _mainWindow.Show();
+
+            var hideItem = new MenuItem { Header = "隐藏主窗口" };
+            hideItem.Click += (s, e) => _mainWindow.Hide();
+
+            var exitItem = new MenuItem { Header = "退出" };
+            exitItem.Click += (s, e) => Application.Current.Shutdown();
+
+            contextMenu.Items.Add(showItem);
+            contextMenu.Items.Add(hideItem);
+            contextMenu.Items.Add(new Separator());
+            contextMenu.Items.Add(exitItem);
+
+            _notifyIcon.ContextMenu = contextMenu;
+
+            // 显示气泡提示
+            _notifyIcon.ShowBalloonTip("壁纸设置工具", "已启动，可以拖放文件到图标处", BalloonIcon.Info);
+        }
+
+        private void InitializeDropWindow()
+        {
+            _dropWindow = new TrayDropWindow();
+            _dropWindow.FileDropped += OnFileDropped;
+        }
+
+        private void InitializeMonitor()
+        {
+            _monitorTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(100)
+            };
+
+            _monitorTimer.Tick += MonitorTimer_Tick;
+            _monitorTimer.Start();
+
+            // 添加调试信息
+            _mainWindow.AddLog("托盘监控已启动");
+        }
+
+        private void MonitorTimer_Tick(object sender, EventArgs e)
+        {
+            // 检查是否有拖放操作（鼠标左键按下）
+            if ((GetKeyState(VK_LBUTTON) & 0x8000) != 0)
+            {
+                // 获取鼠标位置
+                GetCursorPos(out POINT cursorPos);
+
+                // 获取托盘区域
+                var trayRect = GetTrayIconRect();
+
+                // 如果鼠标在托盘区域附近
+                if (IsPointNearRect(new Point(cursorPos.X, cursorPos.Y), trayRect))
+                {
+                    ShowDropWindow(trayRect);
+                }
+                else
+                {
+                    _dropWindow?.Hide();
+                }
+            }
+            else
+            {
+                _dropWindow?.Hide();
+            }
+        }
+
+        private bool IsPointNearRect(Point point, Rect rect)
+        {
+            // 扩大检测区域
+            var expandedRect = new Rect(
+                rect.X - 20,
+                rect.Y - 20,
+                rect.Width + 40,
+                rect.Height + 40
+            );
+
+            return expandedRect.Contains(point);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct APPBARDATA
+        {
+            public int cbSize;
+            public IntPtr hWnd;
+            public int uCallbackMessage;
+            public int uEdge;
+            public RECT rc;
+            public IntPtr lParam;
+        }
+
+        [DllImport("shell32.dll")]
+        private static extern IntPtr SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string lpszWindow);
+
+        private Rect GetTrayIconRect()
+        {
+            try
+            {
+                // 找到任务栏
+                IntPtr taskBar = FindWindow("Shell_TrayWnd", null);
+                if (taskBar != IntPtr.Zero)
+                {
+                    // 找到通知区域
+                    IntPtr trayNotify = FindWindowEx(taskBar, IntPtr.Zero, "TrayNotifyWnd", null);
+                    if (trayNotify != IntPtr.Zero)
+                    {
+                        // 获取通知区域位置
+                        RECT trayRect;
+                        if (GetWindowRect(trayNotify, out trayRect))
+                        {
+                            // 获取屏幕工作区
+                            var workArea = SystemParameters.WorkArea;
+
+                            // 计算托盘图标的预期位置
+                            // 由于我们的图标通常在最左侧，所以从通知区域左侧开始
+                            double iconX = trayRect.Left;
+                            double iconY = trayRect.Top;
+                            double iconWidth = 32; // 标准图标宽度
+                            double iconHeight = trayRect.Bottom - trayRect.Top; // 使用通知区域的高度
+
+                            _mainWindow.AddLog($"通知区域位置: Left={trayRect.Left}, Top={trayRect.Top}, Right={trayRect.Right}, Bottom={trayRect.Bottom}");
+
+                            return new Rect(iconX, iconY, iconWidth, iconHeight);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _mainWindow.AddLog($"获取托盘位置错误: {ex.Message}");
+            }
+
+            // 如果无法获取准确位置，使用默认位置
+            var screen = SystemParameters.WorkArea;
+            return new Rect(
+                screen.Right - 200,
+                screen.Bottom - 40,
+                32,
+                32
+            );
+        }
+
+        private void ShowDropWindow(Rect trayRect)
+        {
+            if (_dropWindow != null && !_dropWindow.IsVisible)
+            {
+                // 根据任务栏高度调整窗口大小
+                var taskbarHeight = SystemParameters.WorkArea.Bottom - SystemParameters.PrimaryScreenHeight;
+
+                _dropWindow.Left = trayRect.X;
+                _dropWindow.Top = trayRect.Y;
+                _dropWindow.Width = 200; // 设置一个合适的宽度，足够覆盖图标区域
+                _dropWindow.Height = Math.Abs(taskbarHeight); // 使用任务栏的实际高度
+
+                _mainWindow.AddLog($"显示拖放窗口: X={_dropWindow.Left}, Y={_dropWindow.Top}, W={_dropWindow.Width}, H={_dropWindow.Height}");
+
+                _dropWindow.Show();
+                _dropWindow.Activate();
+            }
+        }
+
+        public void UpdateDropWindowPosition()
+        {
+            var trayRect = GetTrayIconRect();
+            ShowDropWindow(trayRect);
+        }
+
+        private void OnFileDropped(string[] files)
+        {
+            foreach (string file in files)
+            {
+                string extension = Path.GetExtension(file).ToLowerInvariant();
+                _mainWindow.AddLog($"收到文件: {file}");
+                _mainWindow.AddLog($"文件格式: {extension}");
+                _mainWindow.AddLog("------------------------");
+
+                // 如果窗口是隐藏的，显示窗口
+                if (!_mainWindow.IsVisible)
+                {
+                    _mainWindow.Show();
+                }
+            }
+
+            // 显示通知
+            _notifyIcon?.ShowBalloonTip(
+                "收到文件",
+                $"成功接收 {files.Length} 个文件",
+                BalloonIcon.Info);
+        }
+
+        public void Dispose()
+        {
+            _notifyIcon?.Dispose();
+            _dropWindow?.Close();
+        }
+    }
+}
