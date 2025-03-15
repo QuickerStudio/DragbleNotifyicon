@@ -26,6 +26,7 @@
 ### 示例代码
 
 ```csharp
+我们尝试了多种查找通知图标的算法，只有这个运行最稳定，如果又更好的算法可以提交代码。
 using System;
 using System.Windows;
 
