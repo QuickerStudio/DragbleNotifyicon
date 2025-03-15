@@ -1,7 +1,8 @@
 # WallpaperTool
 
 * 这是一个用于管理和设置壁纸的工具。
-       # 本程序由Github Copilot大家族 赞助
+
+# 本程序由Github Copilot大家族 赞助
 
 ## 功能特性
 
