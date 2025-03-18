@@ -1,8 +1,9 @@
-# WallpaperTool
+# WallpaperTool v2.0
 
 * 这是一个用于管理和设置壁纸的工具，通知图标文件拖拽管理器。
 
 # 本程序由Github Copilot大家族 赞助
+第二代由Cluade 3.7 Sonnet 提供算法支持
 
 ## 功能特性
 
