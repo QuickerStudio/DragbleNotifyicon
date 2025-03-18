@@ -24,7 +24,12 @@
 1. 在项目中引入必要的库和工具。
 2. 调用`TrayHelper`类中的方法获取通知区域的位置。
 * 我们尝试了多种查找通知图标的算法，只有这个运行最稳定，项目仍然缺少一种追踪通知图标位置的有效算法，如果又更好的算法可以提交代码。
+## 界面展示
 
+<div align="center">
+  <img src="https://github.com/yourusername/WallpaperTool/raw/main/screenshots/main.png" width="45%">
+  <img src="https://github.com/yourusername/WallpaperTool/raw/main/screenshots/settings.png" width="45%">
+</div>
 ### 示例代码
 
 ```csharp
