@@ -3,7 +3,7 @@
 * 这是一个用于管理和设置壁纸的工具，通知图标文件拖拽管理器。
 
 # 本程序由Github Copilot大家族 赞助
-第二代由Cluade 3.7 Sonnet 提供算法支持
+# 第二代由Cluade 3.7 Sonnet 提供算法支持
 
 ## 功能特性
 
@@ -27,100 +27,14 @@
 ## 界面展示
 
 <div align="center">
-  <img src="https://github.com/yourusername/WallpaperTool/raw/main/screenshots/main.png" width="45%">
-  <img src="https://github.com/yourusername/WallpaperTool/raw/main/screenshots/settings.png" width="45%">
+  <img src="https://github.com/QuickerStudio/WallpaperTool/blob/%E4%B8%BB%E8%A6%81/Plan%E8%BE%B9%E7%95%8C%E6%A3%80%E6%B5%8B.PNG" width="45%">
+  <img src="https://github.com/QuickerStudio/WallpaperTool/blob/%E4%B8%BB%E8%A6%81/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-03-19%20005048.png" width="45%">
+  <img src="https://github.com/QuickerStudio/WallpaperTool/blob/%E4%B8%BB%E8%A6%81/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-03-19%20005124.png" width="45%">
+  <img src="https://github.com/QuickerStudio/WallpaperTool/blob/%E4%B8%BB%E8%A6%81/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-03-19%20005206.png" width="45%">
+  <img src="https://github.com/QuickerStudio/WallpaperTool/blob/%E4%B8%BB%E8%A6%81/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-03-19%20005301.png" width="45%">
+  <img src="https://github.com/QuickerStudio/WallpaperTool/blob/%E4%B8%BB%E8%A6%81/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-03-19%20005403.png" width="45%">
 </div>
-### 示例代码
 
-```csharp
-using System;
-using System.Windows;
-
-namespace YourNamespace
-{
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
-            InitializeComponent();
-            Loaded += MainWindow_Loaded;
-        }
-
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                // 获取通知区域的位置
-                var notifyRect = TrayHelper.GetNotifyAreaRect();
-                // 可以将信息显示在TextBlock上，也可以输出日志
-                this.LogTextBlock.Text = $"通知区域的位置：\nX={notifyRect.X}\nY={notifyRect.Y}\n宽度={notifyRect.Width}\n高度={notifyRect.Height}";
-            }
-            catch (Exception ex)
-            {
-                this.LogTextBlock.Text = $"获取通知区域位置失败：{ex.Message}";
-            }
-        }
-    }
-}
-```
-
-### TrayHelper 类
-
-```csharp
-using System;
-using System.Runtime.InteropServices;
-using System.Windows;
-
-namespace YourNamespace
-{
-    public static class TrayHelper
-    {
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string lpszWindow);
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct RECT
-        {
-            public int Left;
-            public int Top;
-            public int Right;
-            public int Bottom;
-        }
-
-        public static Rect GetNotifyAreaRect()
-        {
-            IntPtr taskBarWnd = FindWindow("Shell_TrayWnd", null);
-            if (taskBarWnd == IntPtr.Zero)
-            {
-                throw new Exception("找不到任务栏窗口");
-            }
-
-            IntPtr notifyWnd = FindWindowEx(taskBarWnd, IntPtr.Zero, "TrayNotifyWnd", null);
-            if (notifyWnd == IntPtr.Zero)
-            {
-                throw new Exception("找不到通知区域窗口");
-            }
-
-            if (GetWindowRect(notifyWnd, out RECT rect))
-            {
-                double width = rect.Right - rect.Left;
-                double height = rect.Bottom - rect.Top;
-                return new Rect(rect.Left, rect.Top, width, height);
-            }
-            else
-            {
-                throw new Exception("获取通知区域窗口坐标失败");
-            }
-        }
-    }
-}
-```
 
 ## 贡献
 
